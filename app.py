@@ -1,5 +1,4 @@
 import os
-os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"  # Use MSMF backend for Windows
 import cv2
 import PIL
 import numpy as np
@@ -7,7 +6,6 @@ import google.generativeai as genai
 import streamlit as st
 from streamlit_extras.add_vertical_space import add_vertical_space
 from mediapipe.python.solutions import hands, drawing_utils
-from streamlit_camera_input_live import camera_input
 from dotenv import load_dotenv
 from warnings import filterwarnings
 filterwarnings(action='ignore')
@@ -51,19 +49,45 @@ class calculator:
 
 
     def __init__(self):
-        # No direct webcam initialization
-        self.imgCanvas = np.zeros((550, 950, 3), dtype=np.uint8)
+
+        # Load the Env File for Secrect API Key
+        load_dotenv()
+
+        # Initialize a Webcam to Capture Video and Set Width, Height and Brightness
+        self.cap = cv2.VideoCapture(0)
+        self.cap.set(propId=cv2.CAP_PROP_FRAME_WIDTH, value=950)
+        self.cap.set(propId=cv2.CAP_PROP_FRAME_HEIGHT, value=550)
+        self.cap.set(propId=cv2.CAP_PROP_BRIGHTNESS, value=130)
+
+        # Initialize Canvas Image
+        self.imgCanvas = np.zeros(shape=(550,950,3), dtype=np.uint8)
+
+        # Initializes a MediaPipe Hand object
         self.mphands = hands.Hands(max_num_hands=1, min_detection_confidence=0.75)
 
+        # Set Drwaing Origin to Zero
+        self.p1, self.p2 = 0, 0
 
-    def process_frame(self, camera_feed):
-        # Process the frame from the camera feed
-        if camera_feed is not None:
-            img = cv2.imdecode(np.frombuffer(camera_feed, np.uint8), cv2.IMREAD_COLOR)
-            self.img = cv2.flip(img, 1)  # Mirror for user perspective
-            self.imgRGB = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
-        else:
-            st.warning("No camera input received!")
+        # Set Previous Time is Zero for FPS
+        self.p_time = 0
+
+        # Create Fingers Open/Close Position List
+        self.fingers = []
+
+
+    def process_frame(self):
+
+        # Reading the Video Capture to return the Success and Image Frame
+        success, img = self.cap.read()
+
+        # Resize the Image
+        img = cv2.resize(src=img, dsize=(950,550))
+
+        # Flip the Image Horizontally for a Later Selfie_View Display
+        self.img = cv2.flip(src=img, flipCode=1)
+
+        # BGR Image Convert to RGB Image
+        self.imgRGB = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
 
     def process_hands(self):
@@ -204,21 +228,45 @@ class calculator:
 
         
     def main(self):
-        st.markdown("<h1>Virtual Air Canvas</h1>", unsafe_allow_html=True)
+        
+        col1, _, col3 = st.columns([0.8, 0.02, 0.18])
 
-        # Get camera input
-        camera_feed = camera_input()
-        if camera_feed is not None:
-            self.process_frame(camera_feed)
+        with col1:
+            # Stream the webcam video
+            stframe = st.empty()
+        
+        with col3:
+            # Placeholder for result output
+            st.markdown(f'<h5 style="text-position:center;color:green;">Step-by-step solution:</h5>', unsafe_allow_html=True)
+            result_placeholder = st.empty()
 
-            # Additional processing and drawing logic
+        while True:
+
+            if not self.cap.isOpened():
+                add_vertical_space(5)
+                st.markdown(body=f'<h4 style="text-position:center; color:orange;">Error: Could not open webcam. \
+                                    Please ensure your webcam is connected and try again</h4>', 
+                            unsafe_allow_html=True)
+                break
+
+            self.process_frame()
+
             self.process_hands()
-            self.identify_fingers()
-            self.handle_drawing_mode()
-            self.blend_canvas_with_feed()
 
-            st.image(self.img, channels="RGB")
+            self.identify_fingers()
+
+            self.handle_drawing_mode()
+
+            self.blend_canvas_with_feed()
             
+            # Display the Output Frame in the Streamlit App
+            self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+            stframe.image(self.img, channels="RGB")
+
+            # After Done Process with AI
+            if sum(self.fingers) == 2 and self.fingers[1]==self.fingers[2]==1:
+                result = self.analyze_image_with_genai()
+                result_placeholder.write(f"Result: {result}")
         
         # Release the camera and close windows
         self.cap.release()

@@ -5,4 +5,4 @@ google-generativeai
 streamlit
 streamlit-extras
 numpy
-pyhon-dotenv
+python-dotenv

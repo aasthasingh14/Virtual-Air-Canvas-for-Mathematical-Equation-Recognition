@@ -56,6 +56,12 @@ class calculator:
 
         # Initialize a Webcam to Capture Video and Set Width, Height and Brightness
         self.cap = cv2.VideoCapture(0)
+        if self.cap.isOpened():
+            print("Camera successfully opened")
+        else:
+            print("Failed to open camera")
+        self.cap.release()
+
         self.cap.set(propId=cv2.CAP_PROP_FRAME_WIDTH, value=950)
         self.cap.set(propId=cv2.CAP_PROP_FRAME_HEIGHT, value=550)
         self.cap.set(propId=cv2.CAP_PROP_BRIGHTNESS, value=130)

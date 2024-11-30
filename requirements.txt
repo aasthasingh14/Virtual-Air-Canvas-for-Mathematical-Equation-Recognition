@@ -1,4 +1,4 @@
-opencv-python
+opencv-python-headless
 opencv-contrib-python
 pillow
 mediapipe
@@ -6,5 +6,4 @@ google-generativeai
 streamlit
 streamlit-extras
 numpy
-python-dotenv
-streamlit_camera_input_live
+dotenv

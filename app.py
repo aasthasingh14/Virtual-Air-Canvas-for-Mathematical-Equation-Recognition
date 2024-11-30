@@ -1,4 +1,5 @@
-import os
+import os 
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 import cv2
 import PIL
 import numpy as np

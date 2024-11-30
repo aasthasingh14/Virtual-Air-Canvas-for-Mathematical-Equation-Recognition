@@ -1,4 +1,5 @@
 import os
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"  # Use MSMF backend for Windows
 import cv2
 import PIL
 import numpy as np

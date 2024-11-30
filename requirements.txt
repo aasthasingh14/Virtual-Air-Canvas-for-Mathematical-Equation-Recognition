@@ -6,4 +6,5 @@ google-generativeai
 streamlit
 streamlit-extras
 numpy
-dotenv
+python-dotenv
+streamlit-camera-input-live

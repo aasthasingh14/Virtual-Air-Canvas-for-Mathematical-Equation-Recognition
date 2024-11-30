@@ -60,7 +60,7 @@ class calculator:
             print("Camera successfully opened")
         else:
             print("Failed to open camera")
-        self.cap.release()
+        # self.cap.release()
 
         self.cap.set(propId=cv2.CAP_PROP_FRAME_WIDTH, value=950)
         self.cap.set(propId=cv2.CAP_PROP_FRAME_HEIGHT, value=550)

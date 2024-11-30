@@ -55,6 +55,9 @@ class calculator:
 
         # Initialize a Webcam to Capture Video and Set Width, Height and Brightness
         self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            st.error("Webcam not available. Please check your deployment environment.")
+        self.cap = None
         self.cap.set(propId=cv2.CAP_PROP_FRAME_WIDTH, value=950)
         self.cap.set(propId=cv2.CAP_PROP_FRAME_HEIGHT, value=550)
         self.cap.set(propId=cv2.CAP_PROP_BRIGHTNESS, value=130)
